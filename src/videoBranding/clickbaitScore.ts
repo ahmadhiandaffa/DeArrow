@@ -2,6 +2,7 @@ import { VideoID } from "../../maze-utils/src/video";
 import { BrandingLocation } from "./videoBranding";
 import { getOriginalTitleElement } from "../titles/titleRenderer";
 import Config from "../config/config";
+import { inferClickbaitScore } from "./clickbaitInference";
 
 export async function addClickbaitScoreBadge(element: HTMLElement, videoID: VideoID, brandingLocation: BrandingLocation): Promise<void> {
     const originalTitleElement = getOriginalTitleElement(element, brandingLocation);
@@ -15,8 +16,15 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         badge.classList.add("cb-clickbait-score");
         badge.setAttribute("videoID", videoID);
 
-        // Generate a random score from 0% to 100%
-        score = Math.floor(Math.random() * 101);
+        // Get the title text for inference
+        const title = originalTitleElement.textContent ?? "";
+
+        // Get the thumbnail image element for inference (may be null)
+        const thumbnailImg = element.querySelector("img") as HTMLImageElement | null;
+
+        // Run inference (falls back to random if model is not yet provided)
+        score = await inferClickbaitScore(title, thumbnailImg);
+
         badge.setAttribute("data-score", score.toString());
         badge.innerText = `${score}%`;
 
