@@ -302,3 +302,16 @@ input:checked + .sb-slider:before {
     width: fit-content;
     margin: auto;
 }
+
+/* Clickbait Score Badge */
+.cb-clickbait-score {
+    display: inline-block;
+    padding: 2px 6px;
+    margin-left: 6px;
+    border-radius: 4px;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    vertical-align: middle;
+    white-space: nowrap;
+}
