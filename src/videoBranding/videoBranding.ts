@@ -533,7 +533,8 @@ export function setupOptionChangeListener(): void {
             "showLiveCover",
             "formatCustomTitles",
             "formatOriginalTitles",
-            "formatCasualTitles"
+            "formatCasualTitles",
+            "clickbaitThreshold"
         ];
 
         if (settingsToReload.some((name) => (changes[name] && changes[name].newValue !== changes[name].oldValue))) {

@@ -40,12 +40,15 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         score = parseInt(badge.getAttribute("data-score") || "0", 10);
     }
 
+    // Find the actual grid container so we don't leave empty rectangles in the layout
+    const container = element.closest("ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-video-renderer") as HTMLElement || element;
+
     if (!Config.config!.extensionEnabled) {
         badge.style.display = "none";
         
         // Unhide the video if the extension is disabled
         if (brandingLocation !== BrandingLocation.Watch) {
-            element.style.removeProperty("display");
+            container.style.removeProperty("display");
         }
         return;
     }
@@ -56,9 +59,9 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
     const THRESHOLD = Config.config!.clickbaitThreshold ?? 30;
     if (brandingLocation !== BrandingLocation.Watch) {
         if (score < THRESHOLD) {
-            element.style.setProperty("display", "none", "important");
+            container.style.setProperty("display", "none", "important");
         } else {
-            element.style.removeProperty("display");
+            container.style.removeProperty("display");
         }
     }
 }
