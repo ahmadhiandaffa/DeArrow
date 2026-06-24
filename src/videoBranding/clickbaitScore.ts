@@ -34,7 +34,7 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
     }
 
     // Declare threshold once — used for both color and visibility
-    const threshold = Config.config!.clickbaitThreshold ?? 30;
+    const threshold = Config.config!.clickbaitThreshold ?? 20;
 
     // Always recalculate color based on the current threshold
     const remainingRange = 100 - threshold;
