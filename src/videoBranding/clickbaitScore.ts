@@ -3,8 +3,6 @@ import { BrandingLocation } from "./videoBranding";
 import { getOriginalTitleElement } from "../titles/titleRenderer";
 import Config from "../config/config";
 
-
-
 export async function addClickbaitScoreBadge(element: HTMLElement, videoID: VideoID, brandingLocation: BrandingLocation): Promise<void> {
     const originalTitleElement = getOriginalTitleElement(element, brandingLocation);
     if (!originalTitleElement || !originalTitleElement.parentElement) return;
@@ -16,28 +14,30 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         badge = document.createElement("span");
         badge.classList.add("cb-clickbait-score");
         badge.setAttribute("videoID", videoID);
-        
+
         // Generate a random score from 0% to 100%
         score = Math.floor(Math.random() * 101);
         badge.setAttribute("data-score", score.toString());
         badge.innerText = `${score}%`;
 
-        // Dynamic color thresholding based on THRESHOLD
-        const THRESHOLD = Config.config!.clickbaitThreshold ?? 30;
-        const remainingRange = 100 - THRESHOLD;
-        const third = remainingRange / 3;
-
-        if (score < THRESHOLD + third) {
-            badge.style.backgroundColor = "#d32f2f"; // Red
-        } else if (score < THRESHOLD + 2 * third) {
-            badge.style.backgroundColor = "#f57c00"; // Orange
-        } else {
-            badge.style.backgroundColor = "#2e7d32"; // Green
-        }
-
         originalTitleElement.parentElement.appendChild(badge);
     } else {
         score = parseInt(badge.getAttribute("data-score") || "0", 10);
+    }
+
+    // Declare threshold once — used for both color and visibility
+    const threshold = Config.config!.clickbaitThreshold ?? 30;
+
+    // Always recalculate color based on the current threshold
+    const remainingRange = 100 - threshold;
+    const third = remainingRange / 3;
+
+    if (score < threshold + third) {
+        badge.style.backgroundColor = "#d32f2f"; // Red
+    } else if (score < threshold + 2 * third) {
+        badge.style.backgroundColor = "#f57c00"; // Orange
+    } else {
+        badge.style.backgroundColor = "#2e7d32"; // Green
     }
 
     // Find the actual grid container so we don't leave empty rectangles in the layout
@@ -45,7 +45,7 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
 
     if (!Config.config!.extensionEnabled) {
         badge.style.display = "none";
-        
+
         // Unhide the video if the extension is disabled
         if (brandingLocation !== BrandingLocation.Watch) {
             container.style.removeProperty("display");
@@ -56,9 +56,8 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
     badge.style.removeProperty("display");
 
     // Hide videos below threshold, but never on the watch page
-    const THRESHOLD = Config.config!.clickbaitThreshold ?? 30;
     if (brandingLocation !== BrandingLocation.Watch) {
-        if (score < THRESHOLD) {
+        if (score < threshold) {
             container.style.setProperty("display", "none", "important");
         } else {
             container.style.removeProperty("display");
