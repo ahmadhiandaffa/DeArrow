@@ -3,7 +3,7 @@ import { BrandingLocation } from "./videoBranding";
 import { getOriginalTitleElement } from "../titles/titleRenderer";
 import Config from "../config/config";
 
-const THRESHOLD = 30;
+
 
 export async function addClickbaitScoreBadge(element: HTMLElement, videoID: VideoID, brandingLocation: BrandingLocation): Promise<void> {
     const originalTitleElement = getOriginalTitleElement(element, brandingLocation);
@@ -23,6 +23,7 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         badge.innerText = `${score}%`;
 
         // Dynamic color thresholding based on THRESHOLD
+        const THRESHOLD = Config.config!.clickbaitThreshold ?? 30;
         const remainingRange = 100 - THRESHOLD;
         const third = remainingRange / 3;
 
@@ -52,6 +53,7 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
     badge.style.removeProperty("display");
 
     // Hide videos below threshold, but never on the watch page
+    const THRESHOLD = Config.config!.clickbaitThreshold ?? 30;
     if (brandingLocation !== BrandingLocation.Watch) {
         if (score < THRESHOLD) {
             element.style.setProperty("display", "none", "important");

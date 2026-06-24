@@ -41,6 +41,7 @@ export const PopupComponent = () => {
     const [extensionEnabled, setExtensionEnabled] = React.useState(Config.config!.extensionEnabled);
     const [replaceTitles, setReplaceTitles] = React.useState(Config.config!.replaceTitles);
     const [replaceThumbnails, setReplaceThumbnails] = React.useState(Config.config!.replaceThumbnails);
+    const [clickbaitThreshold, setClickbaitThreshold] = React.useState(Config.config!.clickbaitThreshold);
     const [titleFormatting, setTitleFormatting] = React.useState(Config.config!.titleFormatting);
     const [configID, setConfigID] = React.useState<ConfigurationID | null>(null);
 
@@ -56,6 +57,7 @@ export const PopupComponent = () => {
     React.useEffect(() => {
         setReplaceTitles(getOverrideOptionForConfigID(configID ?? null, "replaceTitles")!);
         setReplaceThumbnails(getOverrideOptionForConfigID(configID ?? null, "replaceThumbnails")!);
+        setClickbaitThreshold(getOverrideOptionForConfigID(configID ?? null, "clickbaitThreshold") as number);
     }, [configID]);
 
     return (
@@ -180,6 +182,40 @@ export const PopupComponent = () => {
                         label={chrome.i18n.getMessage("replaceThumbnails")}
                         titleFormatting={titleFormatting}
                     />
+
+                    <div className="sb-switch-container-container" style={{ paddingTop: "15px", flexDirection: "column", alignItems: "flex-start", paddingLeft: "15px", paddingRight: "15px" }}>
+                        <label style={{ fontSize: "14px" }}>
+                            Clickbait Threshold: {clickbaitThreshold}%
+                        </label>
+                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "5px" }}>
+                            <input 
+                                type="range" 
+                                min="0" 
+                                max="100" 
+                                value={clickbaitThreshold}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value, 10);
+                                    setClickbaitThreshold(val);
+                                    setOverrideOrOriginal(configID, "clickbaitThreshold", val);
+                                }}
+                                style={{ flexGrow: 1, marginRight: "10px" }}
+                            />
+                            <input 
+                                type="number" 
+                                min="0" 
+                                max="100" 
+                                value={clickbaitThreshold}
+                                onChange={(e) => {
+                                    let val = parseInt(e.target.value, 10);
+                                    if (isNaN(val)) val = 0;
+                                    val = Math.max(0, Math.min(100, val));
+                                    setClickbaitThreshold(val);
+                                    setOverrideOrOriginal(configID, "clickbaitThreshold", val);
+                                }}
+                                style={{ width: "50px", backgroundColor: "var(--sb-grey-bg-color, #333)", color: "inherit", border: "none", borderRadius: "3px", padding: "2px 5px" }}
+                            />
+                        </div>
+                    </div>
 
                     <FormattingOptionsComponent
                         configID={configID}
