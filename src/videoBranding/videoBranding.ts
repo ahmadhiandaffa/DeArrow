@@ -17,6 +17,7 @@ import { addMaxTitleLinesCssToPage } from "../utils/cssInjector";
 import { casualVoteButton, submitButton } from "../video";
 import { waitFor } from "../../maze-utils/src";
 import { brandingBoxSelector } from "../../maze-utils/src/thumbnail-selectors";
+import { addClickbaitScoreBadge } from "./clickbaitScore";
 
 export type BrandingUUID = string & { readonly __brandingUUID: unique symbol };
 
@@ -119,6 +120,7 @@ export async function replaceCurrentVideoBranding(): Promise<[boolean, boolean]>
         // Only the first title needs a button, it will affect all titles
         if (onWatchPage || onChannelPage) {
             void handleShowOriginalButton(titles[0], videoID, brandingLocation, showCustomBranding, promises, true);
+            void addClickbaitScoreBadge(titles[0], videoID, brandingLocation);
         }
     }
 
@@ -234,6 +236,7 @@ export async function replaceVideoCardBranding(element: HTMLElement, brandingLoc
         const promises = [titlePromise, videoPromise] as [Promise<boolean>, Promise<boolean>];
 
         void handleShowOriginalButton(element, videoID, brandingLocation, showCustomBranding, promises);
+        void addClickbaitScoreBadge(element, videoID, brandingLocation);
 
         const result = await Promise.all(promises);
 
