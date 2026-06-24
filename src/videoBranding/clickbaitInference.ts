@@ -1,39 +1,11 @@
 import * as ort from "onnxruntime-web";
 
-/**
- * Feature vector layout (total: 10 features):
- *
- * Title features [0..6]:
- *   0 - normalized title length (chars / 100)
- *   1 - word count (/ 20)
- *   2 - uppercase ratio (0.0 - 1.0)
- *   3 - capitalized word ratio (0.0 - 1.0)
- *   4 - has question mark (0 or 1)
- *   5 - has exclamation mark (0 or 1)
- *   6 - has ellipsis (0 or 1)
- *
- * Thumbnail features [7..9]:
- *   7 - mean brightness (0.0 - 1.0)
- *   8 - red channel dominance (0.0 - 1.0)
- *   9 - saturation estimate (0.0 - 1.0)
- *
- * Output:
- *   A single float32 in [0, 1] where 0 = not clickbait, 1 = very clickbait.
- *   This is multiplied by 100 to produce the integer score shown in the badge.
- *
- * TODO: Replace with your trained model. The expected input shape is [1, 10] float32.
- */
-
 const NUM_FEATURES = 10;
 
 let inferenceSession: ort.InferenceSession | null = null;
 let modelLoaded = false;
 let modelLoadFailed = false;
 
-/**
- * Lazily loads the ONNX model on first inference call.
- * Falls back gracefully if the file is missing or invalid.
- */
 async function getSession(): Promise<ort.InferenceSession | null> {
     if (modelLoaded) return inferenceSession;
     if (modelLoadFailed) return null;
@@ -54,14 +26,8 @@ async function getSession(): Promise<ort.InferenceSession | null> {
     return inferenceSession;
 }
 
-// Pre-warm the session when the content script loads
 void getSession();
 
-// ─── Feature Extraction ────────────────────────────────────────────────────
-
-/**
- * Extracts a fixed-length float32 feature vector from the video title.
- */
 function extractTitleFeatures(title: string): number[] {
     const words = title.trim().split(/\s+/);
     const upperChars = (title.match(/[A-Z]/g) ?? []).length;
@@ -79,10 +45,6 @@ function extractTitleFeatures(title: string): number[] {
     ];
 }
 
-/**
- * Samples the thumbnail image element and returns pixel-level statistics.
- * Returns zeros if the image is not yet loaded or cross-origin restricted.
- */
 function extractThumbnailFeatures(thumbnailImg: HTMLImageElement | null): number[] {
     const fallback = [0, 0, 0];
     if (!thumbnailImg || !thumbnailImg.complete || thumbnailImg.naturalWidth === 0) {
@@ -126,14 +88,6 @@ function extractThumbnailFeatures(thumbnailImg: HTMLImageElement | null): number
     }
 }
 
-// ─── Main Inference API ────────────────────────────────────────────────────
-
-/**
- * Runs inference on the given title and (optionally) thumbnail image.
- * Returns a score from 0 (not clickbait) to 100 (very clickbait).
- *
- * Falls back to a random score if the model has not yet been replaced.
- */
 export async function inferClickbaitScore(
     title: string,
     thumbnailImg: HTMLImageElement | null
@@ -141,7 +95,6 @@ export async function inferClickbaitScore(
     const session = await getSession();
 
     if (!session) {
-        // Model not loaded — use random placeholder until real model is provided
         return Math.floor(Math.random() * 101);
     }
 
@@ -149,7 +102,6 @@ export async function inferClickbaitScore(
     const thumbFeats = extractThumbnailFeatures(thumbnailImg);
     const features = [...titleFeats, ...thumbFeats];
 
-    // Ensure we always send exactly NUM_FEATURES values
     while (features.length < NUM_FEATURES) features.push(0);
 
     const inputTensor = new ort.Tensor(
@@ -158,15 +110,13 @@ export async function inferClickbaitScore(
         [1, NUM_FEATURES]
     );
 
-    // TODO: Update input/output names to match your model's actual node names.
-    // Inspect with Netron (https://netron.app) or print session.inputNames.
+
     const inputName = session.inputNames[0];
     const outputName = session.outputNames[0];
 
     const results = await session.run({ [inputName]: inputTensor });
     const outputData = results[outputName].data as Float32Array;
 
-    // Expecting a single probability in [0, 1]; multiply to get 0-100 score
     const rawScore = outputData[0] ?? 0;
     return Math.round(Math.max(0, Math.min(1, rawScore)) * 100);
 }

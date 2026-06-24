@@ -16,13 +16,10 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         badge.classList.add("cb-clickbait-score");
         badge.setAttribute("videoID", videoID);
 
-        // Get the title text for inference
         const title = originalTitleElement.textContent ?? "";
 
-        // Get the thumbnail image element for inference (may be null)
         const thumbnailImg = element.querySelector("img") as HTMLImageElement | null;
 
-        // Run inference (falls back to random if model is not yet provided)
         score = await inferClickbaitScore(title, thumbnailImg);
 
         badge.setAttribute("data-score", score.toString());
@@ -33,10 +30,8 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         score = parseInt(badge.getAttribute("data-score") || "0", 10);
     }
 
-    // Declare threshold once — used for both color and visibility
     const threshold = Config.config!.clickbaitThreshold ?? 20;
 
-    // Always recalculate color based on the current threshold
     const remainingRange = 100 - threshold;
     const third = remainingRange / 3;
 
@@ -48,13 +43,11 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
         badge.style.backgroundColor = "#2e7d32"; // Green
     }
 
-    // Find the actual grid container so we don't leave empty rectangles in the layout
     const container = element.closest("ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-video-renderer") as HTMLElement || element;
 
     if (!Config.config!.extensionEnabled) {
         badge.style.display = "none";
 
-        // Unhide the video if the extension is disabled
         if (brandingLocation !== BrandingLocation.Watch) {
             container.style.removeProperty("display");
         }
@@ -63,7 +56,6 @@ export async function addClickbaitScoreBadge(element: HTMLElement, videoID: Vide
 
     badge.style.removeProperty("display");
 
-    // Hide videos below threshold, but never on the watch page
     if (brandingLocation !== BrandingLocation.Watch) {
         if (score < threshold) {
             container.style.setProperty("display", "none", "important");
